@@ -1,0 +1,5 @@
+You are going to help me build a project that uses Python to graph time that has been logged using the Toggl time tracking platform. 
+
+To start, the key feature of the project should be to generate a line graph of cumulative time spent on projects, grouped by project by default, for a given amount of time (default 7 days, but configurable). 
+
+Befor eyou start implementing, I want you to come up with a plan for how the code will be structured and put it into a markdown file here that I can review and approve. I want everything to be in Python, but I want it to be easily deployable to the web. Give an overview of how the technologies used will make it as easy as possible to deploy to the Web. The code should also be as testable as it can and include test cases for each of the possible scenarios. If any credentials are required to retrieve the data, include it in the plan and where the credentials should be stored so that I can provide them before you start implementing. If there are any unexpected errors related to authorization, stop and let me know so I can help correct them before proceeding. 
