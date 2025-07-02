@@ -16,26 +16,40 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = "FocusLedger"
 
 app.layout = dbc.Container([
-    html.H1("FocusLedger: Toggl Time Visualization"),
+    html.H1("FocusLedger: Toggl Time Visualization", style={
+        "fontWeight": "bold",
+        "fontSize": "2.5rem",
+        "marginBottom": "0.5em",
+        "color": "#22223b",
+        "letterSpacing": "-1px"
+    }),
     dbc.Alert(id="rate-limit-banner", color="warning", is_open=False, style={"marginBottom": "10px"}),
     dbc.Alert(id="error-message", color="danger", is_open=False),
-    dbc.Row([
-        dbc.Col([
-            html.Label("Days to show on graph:"),
-            dcc.Input(id="days_to_show", type="number", value=7, min=1, max=90),
-        ], width=3),
-        dbc.Col([
-            html.Label("Rolling window (days):"),
-            dcc.Input(id="rolling_window", type="number", value=7, min=1, max=90),
-        ], width=3),
-        dbc.Col([
-            html.Button("Refresh", id="refresh", n_clicks=0)
-        ], width=2)
-    ]),
+    dbc.Card([
+        dbc.CardBody([
+            dbc.Row([
+                dbc.Col([
+                    html.Label("Days to show on graph:", style={"fontWeight": "500", "color": "#4a4e69"}),
+                    dcc.Input(id="days_to_show", type="number", value=7, min=1, max=90, style={"width": "100%", "borderRadius": "8px", "border": "1px solid #c9ada7", "padding": "6px"}),
+                ], width=3),
+                dbc.Col([
+                    html.Label("Rolling window (days):", style={"fontWeight": "500", "color": "#4a4e69"}),
+                    dcc.Input(id="rolling_window", type="number", value=7, min=1, max=90, style={"width": "100%", "borderRadius": "8px", "border": "1px solid #c9ada7", "padding": "6px"}),
+                ], width=3),
+                dbc.Col([
+                    html.Button("Refresh", id="refresh", n_clicks=0, className="btn btn-primary", style={"width": "100%", "borderRadius": "8px", "backgroundColor": "#22223b", "border": "none", "fontWeight": "bold"})
+                ], width=2),
+            ], align="center", style={"marginBottom": "0.5em"}),
+        ])
+    ], style={"boxShadow": "0 2px 12px rgba(34,34,59,0.08)", "borderRadius": "16px", "marginBottom": "1.5em", "backgroundColor": "#f8f8fa"}),
     dcc.Loading([
-        dcc.Graph(id="cumulative-graph")
-    ])
-], fluid=True)
+        dbc.Card([
+            dbc.CardBody([
+                dcc.Graph(id="cumulative-graph", config={"displayModeBar": False})
+            ])
+        ], style={"boxShadow": "0 2px 12px rgba(34,34,59,0.08)", "borderRadius": "16px", "backgroundColor": "#fff"})
+    ], type="circle"),
+], fluid=True, style={"paddingTop": "2em", "paddingBottom": "2em", "backgroundColor": "#f8f8fa", "minHeight": "100vh"})
 
 @app.callback(
     Output("cumulative-graph", "figure"),
