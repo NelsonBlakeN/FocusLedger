@@ -2,6 +2,7 @@
 
 # Dash for web app
  dash>=2.0.0
+gunicorn
 # requests for HTTP calls
  requests>=2.25.0
 # python-dotenv for local .env support

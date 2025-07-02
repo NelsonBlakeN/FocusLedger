@@ -26,10 +26,29 @@ FocusLedger is a Python Dash web application for visualizing time tracked in Tog
    ```bash
    source .venv/bin/activate
    ```
-5. Run the app:
+
+5. Run the app locally:
    ```bash
    python focusledger/app.py
    ```
+
+### Deploying to Heroku
+
+1. Commit all changes to your repository and push to GitHub.
+2. [Create a Heroku account](https://signup.heroku.com/) if you don't have one.
+3. Go to the [Heroku Dashboard](https://dashboard.heroku.com/) and click **New > Create new app**.
+4. Give your app a name and choose a region.
+5. Under **Deploy**, connect your GitHub repository to Heroku.
+6. Enable **Automatic Deploys** (optional) and click **Deploy Branch** to deploy manually.
+7. Go to the **Settings** tab and click **Reveal Config Vars**. Add your `TOGGL_API_TOKEN` as a config var.
+8. Your app will be available at `https://<your-app-name>.herokuapp.com` after the build completes.
+
+**Heroku requirements:**
+- The repository must have a `Procfile` (already included).
+- The repository must have a `requirements.txt` (already included).
+- The repository must have a `runtime.txt` specifying the Python version (already included).
+
+**Note:** If you use the Heroku UI, you do not need to use the Heroku CLI for any step above.
 
 ### Running Tests
 ```bash
