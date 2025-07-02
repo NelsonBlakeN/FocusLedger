@@ -69,7 +69,6 @@ def prepare_cumulative_graph(entries, projects=None, days=7):
         trace.mode = "lines+markers"
 
     # Custom hover for x unified: show total and all projects for that day
-    # Plotly does not allow a custom template for unified mode, but we can add the total as the first value in the hoverlabel
     fig.update_layout(
         xaxis_title="Date",
         yaxis_title="Hours (7-day running total)",
@@ -77,14 +76,17 @@ def prepare_cumulative_graph(entries, projects=None, days=7):
         hoverlabel=dict(namelength=0)
     )
 
-    # Hack: add the total as the first value in the hoverlabel by updating the trace names
-    for trace in fig.data:
-        # Only update the first trace for each date
-        trace.customdata = [
-            [row[0], row[1], row[2]] for row in trace.customdata
-        ]
-
-    # This will show the total in the unified hover, but not in the single-point hover
-    # The user will see the total at the top of the hover window for each day
+    # Add a visible annotation for the total at the top of the unified hover
+    # This workaround uses the hovertemplate to inject the total for the day at the top of the hover box
+    # Only the first trace for each x value will show the total, others will show blank
+    for i, trace in enumerate(fig.data):
+        # Only show the total for the first project trace at each x value
+        if i == 0:
+            trace.hovertemplate = (
+                "<b>Total: %{customdata[2]}</b><br>"  # total_for_day
+                "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
+            )
+        else:
+            trace.hovertemplate = "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
 
     return fig
