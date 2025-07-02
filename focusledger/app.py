@@ -3,14 +3,14 @@ import dash
 from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from dotenv import load_dotenv
-from toggl_api import fetch_time_entries, RateLimitError
-from graphing import prepare_cumulative_graph
-from toggl_projects import fetch_projects
+from focusledger.toggl_api import fetch_time_entries, RateLimitError
+from focusledger.graphing import prepare_cumulative_graph
+from focusledger.toggl_projects import fetch_projects
 
 # Load environment variables from .env if present
 load_dotenv()
 
-TOGGL_API_TOKEN = os.getenv("TOGGL_API_TOKEN")
+
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = "FocusLedger"
@@ -62,13 +62,14 @@ app.layout = dbc.Container([
     State("rolling_window", "value")
 )
 def update_graph(n_clicks, days_to_show, rolling_window):
-    if not TOGGL_API_TOKEN:
+    token = os.getenv("TOGGL_API_TOKEN")
+    if not token:
         return dash.no_update, "Toggl API token not set. Please set TOGGL_API_TOKEN in your environment.", True, "", False
     try:
         # Fetch enough data to cover the rolling window for the earliest day shown
-        entries = fetch_time_entries(TOGGL_API_TOKEN, days_to_show + rolling_window - 1)
+        entries = fetch_time_entries(token, days_to_show + rolling_window - 1)
         try:
-            projects = fetch_projects(TOGGL_API_TOKEN)
+            projects = fetch_projects(token)
         except Exception:
             projects = []
         fig = prepare_cumulative_graph(entries, projects, days_to_show, rolling_window)
