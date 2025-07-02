@@ -8,9 +8,13 @@ def prepare_cumulative_graph(entries, projects=None, days_to_show=7, rolling_win
     df = pd.DataFrame(entries)
     # Map project_id to project name if possible
     project_map = {}
+    color_map = {}
     if projects:
         for proj in projects:
             project_map[proj.get('id')] = proj.get('name', str(proj.get('id')))
+            # Toggl color is a hex string in 'color' field, e.g. '#ff0000'
+            if 'color' in proj and proj['color']:
+                color_map[proj.get('name', str(proj.get('id')))] = proj['color']
     if 'project_id' in df.columns:
         df['project'] = df['project_id'].map(lambda pid: project_map.get(pid, str(pid)))
     else:
@@ -63,6 +67,13 @@ def prepare_cumulative_graph(entries, projects=None, days_to_show=7, rolling_win
         title=f"{rolling_window}-Day Running Total by Project",
         custom_data=['project', 'hover_hours', 'total_for_day']
     )
+
+    # Set project colors from Toggl
+    if color_map:
+        for trace in fig.data:
+            proj_name = trace.name
+            if proj_name in color_map:
+                trace.line.color = color_map[proj_name]
 
     # Custom hover for single points: just project and value, no labels
     for trace in fig.data:
