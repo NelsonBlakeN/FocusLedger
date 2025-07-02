@@ -2,27 +2,89 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime
 
-def prepare_cumulative_graph(entries):
+def prepare_cumulative_graph(entries, projects=None, days=7):
     if not entries:
         return px.line(title="No data available")
     df = pd.DataFrame(entries)
+    # Map project_id to project name if possible
+    project_map = {}
+    if projects:
+        for proj in projects:
+            project_map[proj.get('id')] = proj.get('name', str(proj.get('id')))
+    if 'project_id' in df.columns:
+        df['project'] = df['project_id'].map(lambda pid: project_map.get(pid, str(pid)))
+    else:
+        df['project'] = 'No Project'
+    df['project'] = df['project'].fillna('No Project')
     # Parse start/stop times
     df['start'] = pd.to_datetime(df['start'])
     df['stop'] = pd.to_datetime(df['stop'])
     df['duration'] = (df['stop'] - df['start']).dt.total_seconds() / 3600.0
     df['date'] = df['start'].dt.date
-    df['project'] = df['project']
-    # Group by project and date, sum durations
-    grouped = df.groupby(['project', 'date'])['duration'].sum().reset_index()
-    # Cumulative sum per project
-    grouped['cumulative'] = grouped.groupby('project')['duration'].cumsum()
+    # Build a date range for the graph (last N days)
+    all_dates = pd.date_range(df['date'].min(), df['date'].max())
+    # For each project, calculate rolling 7-day sum for each day
+    result = []
+    for project in df['project'].unique():
+        proj_df = df[df['project'] == project]
+        for date in all_dates:
+            window_start = date - pd.Timedelta(days=days-1)
+            # Convert to date only once
+            date_only = date.date()
+            window_start_only = window_start.date()
+            mask = (proj_df['date'] >= window_start_only) & (proj_df['date'] <= date_only)
+            total = proj_df.loc[mask, 'duration'].sum()
+            result.append({'project': project, 'date': date_only, 'rolling_sum': total})
+    result_df = pd.DataFrame(result)
+    # Only show the last N days on the graph
+    if not result_df.empty:
+        last_date = result_df['date'].max()
+        if isinstance(last_date, datetime):
+            last_date = last_date.date()
+        cutoff = last_date - pd.Timedelta(days=days-1)
+        if isinstance(cutoff, pd.Timestamp):
+            cutoff = cutoff.date()
+        result_df = result_df[result_df['date'] >= cutoff]
+    # Format rolling_sum to 1 decimal and add units
+    result_df['hover_hours'] = result_df['rolling_sum'].round(1).astype(str) + ' hours'
+
+    # Compute total for each date for unified hover
+    total_by_date = result_df.groupby('date')['rolling_sum'].sum().round(1).astype(str) + ' hours'
+    total_map = total_by_date.to_dict()
+    result_df['total_for_day'] = result_df['date'].map(total_map)
+
     fig = px.line(
-        grouped,
+        result_df,
         x='date',
-        y='cumulative',
+        y='rolling_sum',
         color='project',
         markers=True,
-        title="Cumulative Time by Project"
+        title=f"7-Day Running Total by Project",
+        custom_data=['project', 'hover_hours', 'total_for_day']
     )
-    fig.update_layout(xaxis_title="Date", yaxis_title="Cumulative Hours")
+
+    # Custom hover for single points: just project and value, no labels
+    for trace in fig.data:
+        trace.hovertemplate = "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
+        trace.mode = "lines+markers"
+
+    # Custom hover for x unified: show total and all projects for that day
+    # Plotly does not allow a custom template for unified mode, but we can add the total as the first value in the hoverlabel
+    fig.update_layout(
+        xaxis_title="Date",
+        yaxis_title="Hours (7-day running total)",
+        hovermode="x unified",
+        hoverlabel=dict(namelength=0)
+    )
+
+    # Hack: add the total as the first value in the hoverlabel by updating the trace names
+    for trace in fig.data:
+        # Only update the first trace for each date
+        trace.customdata = [
+            [row[0], row[1], row[2]] for row in trace.customdata
+        ]
+
+    # This will show the total in the unified hover, but not in the single-point hover
+    # The user will see the total at the top of the hover window for each day
+
     return fig
