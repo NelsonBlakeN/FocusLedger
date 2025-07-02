@@ -21,10 +21,16 @@ app.layout = dbc.Container([
     dbc.Alert(id="error-message", color="danger", is_open=False),
     dbc.Row([
         dbc.Col([
-            html.Label("Days to show:"),
-            dcc.Input(id="days", type="number", value=7, min=1, max=90),
+            html.Label("Days to show on graph:"),
+            dcc.Input(id="days_to_show", type="number", value=7, min=1, max=90),
+        ], width=3),
+        dbc.Col([
+            html.Label("Rolling window (days):"),
+            dcc.Input(id="rolling_window", type="number", value=7, min=1, max=90),
+        ], width=3),
+        dbc.Col([
             html.Button("Refresh", id="refresh", n_clicks=0)
-        ], width=4)
+        ], width=2)
     ]),
     dcc.Loading([
         dcc.Graph(id="cumulative-graph")
@@ -38,24 +44,26 @@ app.layout = dbc.Container([
     Output("rate-limit-banner", "children"),
     Output("rate-limit-banner", "is_open"),
     Input("refresh", "n_clicks"),
-    State("days", "value")
+    State("days_to_show", "value"),
+    State("rolling_window", "value")
 )
-def update_graph(n_clicks, days):
+def update_graph(n_clicks, days_to_show, rolling_window):
     if not TOGGL_API_TOKEN:
         return dash.no_update, "Toggl API token not set. Please set TOGGL_API_TOKEN in your environment.", True, "", False
     try:
-        entries = fetch_time_entries(TOGGL_API_TOKEN, days * 2)  # fetch more data for rolling window
+        # Fetch enough data to cover the rolling window for the earliest day shown
+        entries = fetch_time_entries(TOGGL_API_TOKEN, days_to_show + rolling_window - 1)
         try:
             projects = fetch_projects(TOGGL_API_TOKEN)
         except Exception:
             projects = []
-        fig = prepare_cumulative_graph(entries, projects, days)
+        fig = prepare_cumulative_graph(entries, projects, days_to_show, rolling_window)
         return fig, "", False, "", False
     except RateLimitError as e:
         try:
             entries = []
             projects = []
-            fig = prepare_cumulative_graph(entries, projects, days)
+            fig = prepare_cumulative_graph(entries, projects, days_to_show, rolling_window)
         except Exception:
             fig = dash.no_update
         return fig, "", False, "⚠️ Could not retrieve all data from Toggl due to API rate limiting.", True

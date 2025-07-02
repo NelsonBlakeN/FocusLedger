@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime
 
-def prepare_cumulative_graph(entries, projects=None, days=7):
+def prepare_cumulative_graph(entries, projects=None, days_to_show=7, rolling_window=7):
     if not entries:
         return px.line(title="No data available")
     df = pd.DataFrame(entries)
@@ -22,14 +22,15 @@ def prepare_cumulative_graph(entries, projects=None, days=7):
     df['duration'] = (df['stop'] - df['start']).dt.total_seconds() / 3600.0
     df['date'] = df['start'].dt.date
     # Build a date range for the graph (last N days)
+    if df['date'].empty:
+        return px.line(title="No data available")
     all_dates = pd.date_range(df['date'].min(), df['date'].max())
-    # For each project, calculate rolling 7-day sum for each day
+    # For each project, calculate rolling sum for each day
     result = []
     for project in df['project'].unique():
         proj_df = df[df['project'] == project]
         for date in all_dates:
-            window_start = date - pd.Timedelta(days=days-1)
-            # Convert to date only once
+            window_start = date - pd.Timedelta(days=rolling_window-1)
             date_only = date.date()
             window_start_only = window_start.date()
             mask = (proj_df['date'] >= window_start_only) & (proj_df['date'] <= date_only)
@@ -41,7 +42,7 @@ def prepare_cumulative_graph(entries, projects=None, days=7):
         last_date = result_df['date'].max()
         if isinstance(last_date, datetime):
             last_date = last_date.date()
-        cutoff = last_date - pd.Timedelta(days=days-1)
+        cutoff = last_date - pd.Timedelta(days=days_to_show-1)
         if isinstance(cutoff, pd.Timestamp):
             cutoff = cutoff.date()
         result_df = result_df[result_df['date'] >= cutoff]
@@ -59,7 +60,7 @@ def prepare_cumulative_graph(entries, projects=None, days=7):
         y='rolling_sum',
         color='project',
         markers=True,
-        title=f"7-Day Running Total by Project",
+        title=f"{rolling_window}-Day Running Total by Project",
         custom_data=['project', 'hover_hours', 'total_for_day']
     )
 
@@ -71,19 +72,16 @@ def prepare_cumulative_graph(entries, projects=None, days=7):
     # Custom hover for x unified: show total and all projects for that day
     fig.update_layout(
         xaxis_title="Date",
-        yaxis_title="Hours (7-day running total)",
+        yaxis_title=f"Hours ({rolling_window}-day running total)",
         hovermode="x unified",
         hoverlabel=dict(namelength=0)
     )
 
     # Add a visible annotation for the total at the top of the unified hover
-    # This workaround uses the hovertemplate to inject the total for the day at the top of the hover box
-    # Only the first trace for each x value will show the total, others will show blank
     for i, trace in enumerate(fig.data):
-        # Only show the total for the first project trace at each x value
         if i == 0:
             trace.hovertemplate = (
-                "<b>Total: %{customdata[2]}</b><br>"  # total_for_day
+                "<b>Total: %{customdata[2]}</b><br>"
                 "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
             )
         else:
