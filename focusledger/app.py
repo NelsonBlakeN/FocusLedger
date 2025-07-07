@@ -3,8 +3,8 @@ import dash
 from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from dotenv import load_dotenv
-from .toggl_api import fetch_time_entries
-from .graphing import prepare_cumulative_graph
+from focusledger.toggl_api import fetch_time_entries
+from focusledger.graphing import prepare_cumulative_graph
 
 # Load environment variables from .env if present
 load_dotenv()
@@ -47,4 +47,5 @@ def update_graph(n_clicks, days):
         return dash.no_update, str(e), True
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    # Listen on all interfaces so the app is accessible from other machines in the network (e.g., via Tailscale IP)
+    app.run(debug=True, host="0.0.0.0", port=8050)

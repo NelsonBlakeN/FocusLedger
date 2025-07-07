@@ -5,6 +5,7 @@ from datetime import datetime
 def prepare_cumulative_graph(entries):
     if not entries:
         return px.line(title="No data available")
+    # 'project' field is now set in fetch_time_entries; no need to patch here
     df = pd.DataFrame(entries)
     # Parse start/stop times
     df['start'] = pd.to_datetime(df['start'])
