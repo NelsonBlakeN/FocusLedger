@@ -4,8 +4,10 @@ FocusLedger is a Python Dash web application for visualizing time tracked in Tog
 
 ## Features
 - Fetches Toggl time entries and groups by project
-- Interactive line graph of cumulative time
-- Configurable date range (default: 7 days)
+- Two interactive graphs:
+  - **Cumulative Time Graph:** Shows the running total of hours per project over a configurable rolling window and date range.
+  - **Rolling Average Graph:** Shows the rolling average of hours per day per project, with its own configurable window and display period. The sum of all project averages is also shown for each day.
+- Configurable date range and rolling window for each graph (can be set independently)
 - Secure: Toggl API token is provided via environment variable
 - Easily deployable to Heroku, Render, Vercel, etc.
 
@@ -60,10 +62,24 @@ pytest
 - Deploy as a standard Dash app (see deployment guides for Heroku, Render, etc.)
 
 ## Code Structure
-- `focusledger/app.py`: Main Dash app
+- `focusledger/app.py`: Main Dash app (UI, callbacks, both graphs)
 - `focusledger/toggl_api.py`: Toggl API client
-- `focusledger/graphing.py`: Data processing and plotting
-- `focusledger/tests/`: Unit tests
+- `focusledger/graphing.py`: Data processing and plotting (cumulative and rolling average)
+- `focusledger/tests/`: Unit tests (including for both graphs)
+## Usage
+
+When you run the app, you will see two graphs:
+
+1. **Cumulative Time Graph**
+   - Shows the running total of hours per project over a rolling window.
+   - Controls: "Cumulative: Days to show" and "Cumulative: Rolling window (days)".
+
+2. **Rolling Average Graph**
+   - Shows the rolling average of hours per day for each project, over a rolling window.
+   - Controls: "Average: Days to show" and "Average: Rolling window (days)".
+   - The sum of all project averages is shown in the hover for each day.
+
+You can adjust the controls for each graph independently and click **Refresh** to update the data and graphs.
 
 ---
 
