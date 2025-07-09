@@ -134,4 +134,4 @@ def update_graphs(n_clicks, days_to_show, rolling_window, avg_days_to_show, avg_
         return dash.no_update, dash.no_update, dash.no_update, str(e), True, "", False
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port=8050, debug=True)
+    app.run(host="0.0.0.0", port=8050, debug=True)
