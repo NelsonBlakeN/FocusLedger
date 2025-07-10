@@ -1,0 +1,13 @@
+[Unit]
+Description=Focus Ledger Dash App
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/FocusLedger
+ExecStart=/home/ubuntu/FocusLedger/.venv/bin/python -m focusledger.app
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
