@@ -318,46 +318,4 @@ def prepare_cumulative_graph(
         return fig
     except Exception:
         return px.line(title="No data available")
-    result_df['total_for_day'] = result_df['date'].map(total_map)
 
-    fig = px.line(
-        result_df,
-        x='date',
-        y='rolling_sum',
-        color='project',
-        markers=True,
-        title=f"{rolling_window}-Day Running Total by Project",
-        custom_data=['project', 'hover_hours', 'total_for_day']
-    )
-
-    # Set project colors from Toggl
-    if color_map:
-        for trace in fig.data:
-            proj_name = trace.name
-            if proj_name in color_map:
-                trace.line.color = color_map[proj_name]
-
-    # Custom hover for single points: just project and value, no labels
-    for trace in fig.data:
-        trace.hovertemplate = "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
-        trace.mode = "lines+markers"
-
-    # Custom hover for x unified: show total and all projects for that day
-    fig.update_layout(
-        xaxis_title="Date",
-        yaxis_title=f"Hours ({rolling_window}-day running total)",
-        hovermode="x unified",
-        hoverlabel=dict(namelength=0)
-    )
-
-    # Add a visible annotation for the total at the top of the unified hover
-    for i, trace in enumerate(fig.data):
-        if i == 0:
-            trace.hovertemplate = (
-                "<b>Total: %{customdata[2]}</b><br>"
-                "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
-            )
-        else:
-            trace.hovertemplate = "%{customdata[0]}<br>%{customdata[1]}<extra></extra>"
-
-    return fig
