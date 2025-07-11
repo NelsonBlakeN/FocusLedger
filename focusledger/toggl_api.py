@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def fetch_time_entries(api_token, days=7):
     """
@@ -8,7 +8,8 @@ def fetch_time_entries(api_token, days=7):
     Raises RateLimitError if rate limit is reached.
     """
     # Toggl API v9 expects 'since' as a unix timestamp (integer)
-    since_dt = datetime.utcnow() - timedelta(days=days)
+    # Use timezone-aware UTC datetime for future compatibility
+    since_dt = datetime.now(timezone.utc) - timedelta(days=days)
     since = int(since_dt.timestamp())
     url = "https://api.track.toggl.com/api/v9/me/time_entries"
     params = {"since": since}

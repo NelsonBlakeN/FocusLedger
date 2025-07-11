@@ -195,7 +195,22 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime
 
-def prepare_cumulative_graph(entries, projects=None, days_to_show=7, rolling_window=7):
+def prepare_cumulative_graph(
+    entries: list,
+    projects: list = None,
+    days_to_show: int = 7,
+    rolling_window: int = 7
+) -> 'plotly.graph_objs._figure.Figure':
+    """
+    Prepare a cumulative time graph grouped by project and date.
+    Args:
+        entries (list): List of time entry dicts, each with 'start', 'stop', 'project'.
+        projects (list): List of project dicts from Toggl API.
+        days_to_show (int): Number of days to show on the graph.
+        rolling_window (int): Window size for rolling sum.
+    Returns:
+        plotly.graph_objs._figure.Figure: Cumulative time line graph.
+    """
     try:
         if not entries:
             return px.line(title="No data available")
@@ -303,19 +318,6 @@ def prepare_cumulative_graph(entries, projects=None, days_to_show=7, rolling_win
         return fig
     except Exception:
         return px.line(title="No data available")
-        last_date = result_df['date'].max()
-        if isinstance(last_date, datetime):
-            last_date = last_date.date()
-        cutoff = last_date - pd.Timedelta(days=days_to_show-1)
-        if isinstance(cutoff, pd.Timestamp):
-            cutoff = cutoff.date()
-        result_df = result_df[result_df['date'] >= cutoff]
-    # Format rolling_sum to 1 decimal and add units
-    result_df['hover_hours'] = result_df['rolling_sum'].round(1).astype(str) + ' hours'
-
-    # Compute total for each date for unified hover
-    total_by_date = result_df.groupby('date')['rolling_sum'].sum().round(1).astype(str) + ' hours'
-    total_map = total_by_date.to_dict()
     result_df['total_for_day'] = result_df['date'].map(total_map)
 
     fig = px.line(
