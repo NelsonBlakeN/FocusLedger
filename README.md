@@ -2,7 +2,7 @@
 
 FocusLedger is a Python Dash web application for visualizing time tracked in Toggl. It generates interactive graphs of cumulative time spent on projects, grouped by project, over a configurable time window.
 
--## Features
+## Features
 - Fetches Toggl time entries and groups by project
 - Interactive graphs:
   - **Cumulative Time Graph:** Running total of hours per project over a rolling window and date range
